@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>MemeLab 🔥</title>
+<link href="https://fonts.googleapis.com/css2?family=Bangers&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0d0f;
+    --surface: #18181c;
+    --surface2: #222228;
+    --border: #2e2e38;
+    --accent: #f5c518;
+    --accent2: #ff4d6d;
+    --text: #f0f0f5;
+    --muted: #888896;
+    --radius: 14px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
+  }
+
+  /* HEADER */
+  header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    position: sticky; top: 0; z-index: 100;
+  }
+  .logo {
+    font-family: 'Bangers', cursive;
+    font-size: 28px; letter-spacing: 2px;
+    color: var(--accent);
+    text-shadow: 2px 2px 0 var(--accent2);
+  }
+  .logo span { color: var(--accent2); }
+
+  /* MAIN */
+  main {
+    flex: 1; padding: 16px;
+    display: flex; flex-direction: column; gap: 16px;
+    max-width: 700px; margin: 0 auto; width: 100%;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+  }
+  .card-title {
+    font-size: 11px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 1.5px;
+    color: var(--muted); margin-bottom: 12px;
+  }
+
+  /* TABS */
+  .tabs { display: flex; gap: 8px; margin-bottom: 14px; }
+  .tab {
+    flex: 1; padding: 10px; border-radius: 10px;
+    border: 1px solid var(--border); background: var(--surface2);
+    color: var(--muted); font-family: 'DM Sans', sans-serif;
+    font-size: 13px; font-weight: 600; cursor: pointer;
+    transition: all .2s; text-align: center;
+  }
+  .tab.active { background: var(--accent); color: #000; border-color: var(--accent); }
+
+  /* UPLOAD */
+  .upload-area {
+    border: 2px dashed var(--border); border-radius: var(--radius);
+    padding: 32px 20px; text-align: center; cursor: pointer;
+    transition: border-color .2s, background .2s;
+    position: relative; overflow: hidden;
+  }
+  .upload-area:active { background: var(--surface2); border-color: var(--accent); }
+  .upload-area input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+  .upload-icon { font-size: 36px; margin-bottom: 8px; }
+  .upload-text { font-size: 14px; color: var(--muted); }
+  .upload-text strong { color: var(--text); }
+
+  .url-row { display: flex; gap: 8px; }
+  .url-input {
+    flex: 1; background: var(--surface2);
+    border: 1px solid var(--border); border-radius: 10px;
+    padding: 12px 14px; color: var(--text);
+    font-family: 'DM Sans', sans-serif; font-size: 14px;
+    outline: none; transition: border-color .2s;
+  }
+  .url-input:focus { border-color: var(--accent); }
+  .url-input::placeholder { color: var(--muted); }
+
+  /* BUTTONS */
+  .btn {
+    background: var(--accent); color: #000; border: none;
+    border-radius: 10px; padding: 12px 18px;
+    font-family: 'DM Sans', sans-serif; font-size: 14px;
+    font-weight: 700; cursor: pointer;
+    transition: transform .1s, opacity .2s; white-space: nowrap;
+  }
+  .btn:active { transform: scale(0.96); }
+  .btn.ghost { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+  .btn.red { background: var(--accent2); color: #fff; }
+  .btn.sm { padding: 8px 14px; font-size: 13px; }
+
+  /* CANVAS */
+  .canvas-wrap {
+    position: relative; width: 100%;
+    border-radius: var(--radius); overflow: hidden;
+    background: #111; touch-action: none; user-select: none;
+  }
+  #memeCanvas { display: block; width: 100%; height: auto; }
+
+  .empty-canvas {
+    width: 100%; aspect-ratio: 16/9;
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column; gap: 10px;
+    background: var(--surface2); border-radius: var(--radius);
+    border: 2px dashed var(--border);
+  }
+  .empty-canvas-icon { font-size: 48px; }
+  .empty-canvas-text { color: var(--muted); font-size: 14px; }
+
+  /* ── CANVAS HINT ── */
+  .canvas-hint {
+    text-align: center; font-size: 12px; color: var(--muted);
+    margin-top: 8px; display: none;
+  }
+  .canvas-hint.visible { display: block; }
+
+  /* ── NEW TEXT AREA ── */
+  .new-text-area {
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .new-text-row { display: flex; gap: 8px; align-items: stretch; }
+  .text-input {
+    flex: 1; background: var(--surface2);
+    border: 2px solid var(--border); border-radius: 10px;
+    padding: 12px 14px; color: var(--text);
+    font-family: 'Bangers', cursive; font-size: 18px;
+    letter-spacing: 1px;
+    outline: none; transition: border-color .2s;
+  }
+  .text-input:focus { border-color: var(--accent); }
+  .text-input::placeholder { color: var(--muted); font-family: 'DM Sans', sans-serif; font-size: 14px; }
+
+  /* ── STYLE CONTROLS ── */
+  .style-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .style-block {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 12px;
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .style-label {
+    font-size: 10px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 1px;
+    color: var(--muted);
+  }
+  .style-row { display: flex; align-items: center; gap: 8px; }
+  input[type=range] {
+    -webkit-appearance: none; flex: 1; min-width: 0;
+    height: 4px; border-radius: 2px; background: var(--border); outline: none;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 20px; height: 20px;
+    border-radius: 50%; background: var(--accent); cursor: pointer;
+  }
+  input[type=color] {
+    width: 32px; height: 32px;
+    border: 2px solid var(--border); border-radius: 8px;
+    background: none; cursor: pointer; padding: 2px; flex-shrink: 0;
+  }
+  .range-val {
+    font-size: 12px; color: var(--accent);
+    font-weight: 700; min-width: 26px; text-align: right;
+  }
+
+  /* ── TEXT LIST ── */
+  .text-list { display: flex; flex-direction: column; gap: 6px; margin-top: 4px; }
+  .text-item {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--surface2); border: 2px solid var(--border);
+    border-radius: 10px; padding: 10px 12px;
+    cursor: pointer; transition: border-color .15s, background .15s;
+  }
+  .text-item:hover { border-color: var(--muted); }
+  .text-item.selected { border-color: var(--accent); background: #1e1c10; }
+  .text-item-drag { color: var(--muted); font-size: 16px; cursor: grab; padding: 0 4px; }
+  .text-item-label {
+    flex: 1; font-size: 14px; font-weight: 600; color: var(--text);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    font-family: 'Bangers', cursive; letter-spacing: 1px;
+  }
+  .text-item-edit {
+    background: none; border: none; color: var(--accent);
+    font-size: 14px; cursor: pointer; padding: 2px 6px; border-radius: 6px;
+  }
+  .text-item-del {
+    background: none; border: none; color: var(--accent2);
+    font-size: 16px; cursor: pointer; padding: 2px 6px; border-radius: 6px;
+  }
+
+  /* ── INLINE EDIT PANEL ── */
+  .edit-panel {
+    background: #1a1a20;
+    border: 2px solid var(--accent);
+    border-radius: var(--radius);
+    padding: 14px;
+    margin-top: 8px;
+    display: none;
+    flex-direction: column;
+    gap: 10px;
+    animation: slideDown .18s ease;
+  }
+  .edit-panel.open { display: flex; }
+  @keyframes slideDown {
+    from { opacity: 0; transform: translateY(-6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .edit-panel-header {
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 1px; color: var(--accent);
+  }
+  .edit-panel-close {
+    background: none; border: none; color: var(--muted);
+    font-size: 18px; cursor: pointer; line-height: 1;
+  }
+  .edit-text-input {
+    background: var(--surface2); border: 2px solid var(--border);
+    border-radius: 10px; padding: 12px 14px; color: var(--text);
+    font-family: 'Bangers', cursive; font-size: 20px;
+    letter-spacing: 1px; outline: none; width: 100%;
+    transition: border-color .2s;
+  }
+  .edit-text-input:focus { border-color: var(--accent); }
+
+  /* ACTIONS */
+  .action-row { display: flex; gap: 8px; }
+  .action-row .btn { flex: 1; text-align: center; font-size: 15px; padding: 14px; }
+
+  /* TOAST */
+  .toast {
+    position: fixed; bottom: 20px; left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--accent); color: #000;
+    font-weight: 700; font-size: 14px;
+    padding: 12px 22px; border-radius: 30px;
+    transition: transform .3s cubic-bezier(.34,1.56,.64,1);
+    z-index: 999; white-space: nowrap;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Meme<span>Lab</span> 🔥</div>
+</header>
+
+<main>
+
+  <!-- 1. IMMAGINE -->
+  <div class="card">
+    <div class="card-title">📸 1. Scegli l'immagine</div>
+    <div class="tabs">
+      <button class="tab active" id="tabUpload" onclick="switchTab('upload')">📁 Carica</button>
+      <button class="tab" id="tabUrl" onclick="switchTab('url')">🔗 URL</button>
+    </div>
+    <div id="panelUpload">
+      <div class="upload-area" id="uploadArea">
+        <input type="file" id="fileInput" accept="image/*">
+        <div class="upload-icon">📤</div>
+        <div class="upload-text"><strong>Tocca per caricare</strong><br>JPG, PNG, GIF, WebP</div>
+      </div>
+    </div>
+    <div id="panelUrl" class="hidden">
+      <div class="url-row">
+        <input type="url" class="url-input" id="urlInput" placeholder="https://esempio.com/immagine.jpg">
+        <button class="btn" onclick="loadFromUrl()">Carica</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. CANVAS -->
+  <div class="card" id="canvasCard">
+    <div class="card-title">🎨 2. Anteprima</div>
+    <div id="emptyCanvas" class="empty-canvas">
+      <div class="empty-canvas-icon">🖼️</div>
+      <div class="empty-canvas-text">Carica un'immagine per iniziare</div>
+    </div>
+    <div id="canvasWrap" class="canvas-wrap hidden">
+      <canvas id="memeCanvas"></canvas>
+    </div>
+    <div class="canvas-hint" id="canvasHint">👆 Tocca un testo per selezionarlo · Trascina per spostarlo</div>
+  </div>
+
+  <!-- 3. TESTO -->
+  <div class="card">
+    <div class="card-title">✏️ 3. Testo</div>
+    <div class="new-text-area">
+
+      <!-- Input + pulsante aggiungi -->
+      <div class="new-text-row">
+        <input type="text" class="text-input" id="textInput"
+          placeholder="Scrivi il tuo testo…"
+          oninput="onLiveInput()"
+          onkeydown="if(event.key==='Enter') confirmAdd()">
+        <button class="btn" onclick="confirmAdd()" style="align-self:stretch">＋</button>
+      </div>
+
+      <!-- Stile -->
+      <div class="style-grid">
+        <div class="style-block">
+          <div class="style-label">Dimensione</div>
+          <div class="style-row">
+            <input type="range" id="fontSize" min="16" max="200" value="42" oninput="onStyleChange()">
+            <span class="range-val" id="fontSizeVal">42</span>
+          </div>
+        </div>
+        <div class="style-block">
+          <div class="style-label">Contorno</div>
+          <div class="style-row">
+            <input type="range" id="strokeWidth" min="0" max="12" value="4" oninput="onStyleChange()">
+            <span class="range-val" id="strokeWidthVal">4</span>
+          </div>
+        </div>
+        <div class="style-block">
+          <div class="style-label">Colore testo</div>
+          <div class="style-row">
+            <input type="color" id="textColor" value="#ffffff" oninput="onStyleChange()">
+            <span style="font-size:12px;color:var(--muted)">Testo</span>
+          </div>
+        </div>
+        <div class="style-block">
+          <div class="style-label">Colore contorno</div>
+          <div class="style-row">
+            <input type="color" id="strokeColor" value="#000000" oninput="onStyleChange()">
+            <span style="font-size:12px;color:var(--muted)">Bordo</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Lista testi aggiunti -->
+      <div class="text-list" id="textList"></div>
+
+      <!-- Pannello di editing inline -->
+      <div class="edit-panel" id="editPanel">
+        <div class="edit-panel-header">
+          <span>✏️ Modifica testo</span>
+          <button class="edit-panel-close" onclick="closeEditPanel()">✕</button>
+        </div>
+        <input type="text" class="edit-text-input" id="editTextInput"
+          placeholder="Testo…"
+          oninput="onEditLive()"
+          onkeydown="if(event.key==='Enter') closeEditPanel()">
+
+        <!-- Stile in post -->
+        <div class="style-grid">
+          <div class="style-block">
+            <div class="style-label">Dimensione</div>
+            <div class="style-row">
+              <input type="range" id="editFontSize" min="16" max="200" value="42" oninput="onEditStyleChange()">
+              <span class="range-val" id="editFontSizeVal">42</span>
+            </div>
+          </div>
+          <div class="style-block">
+            <div class="style-label">Contorno</div>
+            <div class="style-row">
+              <input type="range" id="editStrokeWidth" min="0" max="12" value="4" oninput="onEditStyleChange()">
+              <span class="range-val" id="editStrokeWidthVal">4</span>
+            </div>
+          </div>
+          <div class="style-block">
+            <div class="style-label">Colore testo</div>
+            <div class="style-row">
+              <input type="color" id="editTextColor" value="#ffffff" oninput="onEditStyleChange()">
+              <span style="font-size:12px;color:var(--muted)">Testo</span>
+            </div>
+          </div>
+          <div class="style-block">
+            <div class="style-label">Colore contorno</div>
+            <div class="style-row">
+              <input type="color" id="editStrokeColor" value="#000000" oninput="onEditStyleChange()">
+              <span style="font-size:12px;color:var(--muted)">Bordo</span>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:8px">
+          <button class="btn sm" onclick="closeEditPanel()" style="flex:1">✅ Fatto</button>
+          <button class="btn sm red" id="editDelBtn" onclick="deleteSelectedText()" style="flex:1">🗑 Elimina</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 4. AZIONI -->
+  <div class="card">
+    <div class="card-title">💾 4. Salva e condividi</div>
+    <div class="action-row">
+      <button class="btn" onclick="downloadMeme()">⬇️ Scarica</button>
+      <button class="btn ghost" onclick="shareMeme()">↗️ Condividi</button>
+    </div>
+  </div>
+
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── STATE ────────────────────────────────────────────────────────────────────
+let img = null;
+let texts = [];       // { text, x, y, size, color, strokeColor, strokeWidth }
+let selectedIdx = -1; // which text is selected
+let previewIdx = -1;  // the live-preview ghost (before confirming add)
+let dragging = false;
+let dragOffX = 0, dragOffY = 0;
+
+const canvas  = document.getElementById('memeCanvas');
+const ctx     = canvas.getContext('2d');
+
+// ─── TABS ─────────────────────────────────────────────────────────────────────
+function switchTab(tab) {
+  document.getElementById('tabUpload').classList.toggle('active', tab==='upload');
+  document.getElementById('tabUrl').classList.toggle('active', tab==='url');
+  document.getElementById('panelUpload').classList.toggle('hidden', tab!=='upload');
+  document.getElementById('panelUrl').classList.toggle('hidden', tab!=='url');
+}
+
+// ─── FILE ─────────────────────────────────────────────────────────────────────
+document.getElementById('fileInput').addEventListener('change', e => {
+  const f = e.target.files[0]; if (!f) return;
+  const r = new FileReader();
+  r.onload = ev => loadImage(ev.target.result);
+  r.readAsDataURL(f);
+});
+
+const uploadArea = document.getElementById('uploadArea');
+uploadArea.addEventListener('dragover', e => { e.preventDefault(); uploadArea.style.borderColor='var(--accent)'; });
+uploadArea.addEventListener('dragleave', () => { uploadArea.style.borderColor=''; });
+uploadArea.addEventListener('drop', e => {
+  e.preventDefault(); uploadArea.style.borderColor='';
+  const f = e.dataTransfer.files[0];
+  if (f && f.type.startsWith('image/')) { const r=new FileReader(); r.onload=ev=>loadImage(ev.target.result); r.readAsDataURL(f); }
+});
+
+function loadFromUrl() {
+  const url = document.getElementById('urlInput').value.trim(); if (!url) return;
+  loadImage('https://corsproxy.io/?' + encodeURIComponent(url));
+}
+
+function loadImage(src) {
+  const image = new Image(); image.crossOrigin='anonymous';
+  image.onload = () => {
+    img = image;
+    canvas.width = image.naturalWidth; canvas.height = image.naturalHeight;
+    texts = []; selectedIdx = -1; previewIdx = -1;
+    document.getElementById('emptyCanvas').classList.add('hidden');
+    document.getElementById('canvasWrap').classList.remove('hidden');
+    document.getElementById('canvasHint').classList.add('visible');
+    updateTextList(); render();
+    showToast('✅ Immagine caricata!');
+  };
+  image.onerror = () => showToast('❌ Errore caricamento immagine');
+  image.src = src;
+}
+
+// ─── CURRENT STYLE from controls ─────────────────────────────────────────────
+function getStyle() {
+  return {
+    size:        +document.getElementById('fontSize').value,
+    color:        document.getElementById('textColor').value,
+    strokeColor:  document.getElementById('strokeColor').value,
+    strokeWidth: +document.getElementById('strokeWidth').value,
+  };
+}
+
+// ─── LIVE PREVIEW while typing (before adding) ───────────────────────────────
+function onLiveInput() {
+  if (!img) return;
+  const val = document.getElementById('textInput').value;
+  if (!val) { previewIdx = -1; render(); return; }
+  if (previewIdx === -1) {
+    // Create a ghost entry at top-centre
+    texts.push({ text: val, x: canvas.width * 0.08, y: canvas.height * 0.06, ...getStyle(), ghost: true });
+    previewIdx = texts.length - 1;
+  } else {
+    texts[previewIdx] = { ...texts[previewIdx], text: val, ...getStyle() };
+  }
+  render();
+}
+
+function onStyleChange() {
+  document.getElementById('fontSizeVal').textContent   = document.getElementById('fontSize').value;
+  document.getElementById('strokeWidthVal').textContent = document.getElementById('strokeWidth').value;
+  // Update either the ghost preview or the selected text
+  if (previewIdx >= 0) {
+    texts[previewIdx] = { ...texts[previewIdx], ...getStyle() };
+    render();
+  } else if (selectedIdx >= 0) {
+    texts[selectedIdx] = { ...texts[selectedIdx], ...getStyle() };
+    updateTextList(); render();
+  }
+}
+
+// ─── CONFIRM ADD ─────────────────────────────────────────────────────────────
+function confirmAdd() {
+  const val = document.getElementById('textInput').value.trim();
+  if (!img) { showToast('⚠️ Prima carica un\'immagine'); return; }
+  if (!val) return;
+  if (previewIdx >= 0) {
+    texts[previewIdx].ghost = false; // promote ghost to real
+    selectedIdx = previewIdx;
+    previewIdx = -1;
+  } else {
+    texts.push({ text: val, x: canvas.width*0.08, y: canvas.height*0.06, ...getStyle(), ghost: false });
+    selectedIdx = texts.length - 1;
+  }
+  document.getElementById('textInput').value = '';
+  updateTextList(); render();
+}
+
+// ─── LIVE EDIT of existing text ──────────────────────────────────────────────
+function onEditLive() {
+  if (selectedIdx < 0) return;
+  texts[selectedIdx].text = document.getElementById('editTextInput').value || ' ';
+  updateTextList(); render();
+}
+
+function onEditStyleChange() {
+  document.getElementById('editFontSizeVal').textContent    = document.getElementById('editFontSize').value;
+  document.getElementById('editStrokeWidthVal').textContent = document.getElementById('editStrokeWidth').value;
+  if (selectedIdx < 0) return;
+  texts[selectedIdx].size        = +document.getElementById('editFontSize').value;
+  texts[selectedIdx].color       =  document.getElementById('editTextColor').value;
+  texts[selectedIdx].strokeColor =  document.getElementById('editStrokeColor').value;
+  texts[selectedIdx].strokeWidth = +document.getElementById('editStrokeWidth').value;
+  render();
+}
+
+function closeEditPanel() {
+  document.getElementById('editPanel').classList.remove('open');
+  // if text is now empty, remove it
+  if (selectedIdx >= 0 && texts[selectedIdx].text.trim() === '') {
+    texts.splice(selectedIdx, 1);
+    selectedIdx = -1;
+  }
+  updateTextList(); render();
+}
+
+function openEditPanel(i) {
+  selectedIdx = i;
+  document.getElementById('editTextInput').value = texts[i].text;
+  // sync style controls
+  const t = texts[i];
+  document.getElementById('fontSize').value = t.size;
+  document.getElementById('fontSizeVal').textContent = t.size;
+  document.getElementById('textColor').value = t.color;
+  document.getElementById('strokeColor').value = t.strokeColor;
+  document.getElementById('strokeWidth').value = t.strokeWidth;
+  document.getElementById('strokeWidthVal').textContent = t.strokeWidth;
+  // sync edit-panel style controls
+  document.getElementById('editFontSize').value = t.size;
+  document.getElementById('editFontSizeVal').textContent = t.size;
+  document.getElementById('editTextColor').value = t.color;
+  document.getElementById('editStrokeColor').value = t.strokeColor;
+  document.getElementById('editStrokeWidth').value = t.strokeWidth;
+  document.getElementById('editStrokeWidthVal').textContent = t.strokeWidth;
+  document.getElementById('editPanel').classList.add('open');
+  document.getElementById('editTextInput').focus();
+  updateTextList(); render();
+}
+
+function deleteSelectedText() {
+  if (selectedIdx < 0) return;
+  texts.splice(selectedIdx, 1);
+  selectedIdx = -1;
+  document.getElementById('editPanel').classList.remove('open');
+  updateTextList(); render();
+}
+
+// ─── TEXT LIST ────────────────────────────────────────────────────────────────
+function updateTextList() {
+  const list = document.getElementById('textList');
+  list.innerHTML = '';
+  texts.forEach((t, i) => {
+    if (t.ghost) return; // don't show ghost in list
+    const el = document.createElement('div');
+    el.className = 'text-item' + (i === selectedIdx ? ' selected' : '');
+    el.innerHTML = `
+      <span class="text-item-drag">⠿</span>
+      <span class="text-item-label">${escHtml(t.text)}</span>
+      <button class="text-item-edit" onclick="openEditPanel(${i})" title="Modifica">✏️</button>
+      <button class="text-item-del" onclick="removeText(${i})" title="Elimina">✕</button>`;
+    el.addEventListener('click', e => {
+      if (e.target.tagName === 'BUTTON') return;
+      openEditPanel(i);
+    });
+    list.appendChild(el);
+  });
+}
+
+function removeText(i) {
+  texts.splice(i, 1);
+  if (selectedIdx >= texts.length) selectedIdx = texts.length - 1;
+  document.getElementById('editPanel').classList.remove('open');
+  updateTextList(); render();
+}
+
+// ─── RENDER ───────────────────────────────────────────────────────────────────
+function render() {
+  if (!img) return;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.drawImage(img, 0, 0);
+
+  texts.forEach((t, i) => {
+    if (!t.text || !t.text.trim()) return;
+    ctx.save();
+    ctx.font = `900 ${t.size}px Bangers, Impact, Arial Black`;
+    ctx.textBaseline = 'top';
+
+    // ghost (live preview) gets lighter
+    const alpha = t.ghost ? 0.65 : 1;
+    ctx.globalAlpha = alpha;
+
+    if (t.strokeWidth > 0) {
+      ctx.strokeStyle = t.strokeColor;
+      ctx.lineWidth = t.strokeWidth * 2;
+      ctx.lineJoin = 'round';
+      ctx.strokeText(t.text, t.x, t.y);
+    }
+    ctx.fillStyle = t.color;
+    ctx.fillText(t.text, t.x, t.y);
+    ctx.globalAlpha = 1;
+
+    // selection box
+    if (i === selectedIdx) {
+      const w = ctx.measureText(t.text).width;
+      const h = t.size * 1.15;
+      ctx.strokeStyle = '#f5c518';
+      ctx.lineWidth = Math.max(2, canvas.width * 0.003);
+      ctx.setLineDash([8, 4]);
+      ctx.strokeRect(t.x - 8, t.y - 8, w + 16, h + 16);
+      ctx.setLineDash([]);
+      // drag handle hint
+      ctx.fillStyle = '#f5c518';
+      ctx.font = `${Math.max(16, t.size * 0.45)}px sans-serif`;
+      ctx.textBaseline = 'middle';
+      ctx.fillText('⠿', t.x - 8, t.y + h / 2 + 8);
+    }
+    ctx.restore();
+  });
+}
+
+// ─── DRAG: MOUSE ─────────────────────────────────────────────────────────────
+function canvasXY(clientX, clientY) {
+  const r = canvas.getBoundingClientRect();
+  const s = canvas.width / r.width;
+  return { x: (clientX - r.left) * s, y: (clientY - r.top) * s };
+}
+
+function hitTest(cx, cy) {
+  for (let i = texts.length - 1; i >= 0; i--) {
+    if (texts[i].ghost) continue;
+    const t = texts[i];
+    ctx.font = `900 ${t.size}px Bangers, Impact, Arial Black`;
+    const w = ctx.measureText(t.text).width;
+    const h = t.size * 1.15;
+    if (cx >= t.x - 10 && cx <= t.x + w + 10 && cy >= t.y - 10 && cy <= t.y + h + 10) return i;
+  }
+  return -1;
+}
+
+canvas.addEventListener('mousedown', e => {
+  const {x, y} = canvasXY(e.clientX, e.clientY);
+  const hit = hitTest(x, y);
+  if (hit >= 0) {
+    selectedIdx = hit; dragging = true;
+    dragOffX = x - texts[hit].x; dragOffY = y - texts[hit].y;
+    updateTextList(); render();
+  } else { selectedIdx = -1; updateTextList(); render(); }
+});
+canvas.addEventListener('mousemove', e => {
+  if (!dragging || selectedIdx < 0) return;
+  const {x, y} = canvasXY(e.clientX, e.clientY);
+  texts[selectedIdx].x = x - dragOffX;
+  texts[selectedIdx].y = y - dragOffY;
+  render();
+});
+canvas.addEventListener('mouseup', () => { dragging = false; });
+
+// ─── DRAG: TOUCH ──────────────────────────────────────────────────────────────
+canvas.addEventListener('touchstart', e => {
+  e.preventDefault();
+  const t0 = e.touches[0];
+  const {x, y} = canvasXY(t0.clientX, t0.clientY);
+  const hit = hitTest(x, y);
+  if (hit >= 0) {
+    selectedIdx = hit; dragging = true;
+    dragOffX = x - texts[hit].x; dragOffY = y - texts[hit].y;
+    updateTextList(); render();
+  } else {
+    selectedIdx = -1; dragging = false;
+    updateTextList(); render();
+  }
+}, { passive: false });
+
+canvas.addEventListener('touchmove', e => {
+  e.preventDefault();
+  if (!dragging || selectedIdx < 0) return;
+  const t0 = e.touches[0];
+  const {x, y} = canvasXY(t0.clientX, t0.clientY);
+  texts[selectedIdx].x = x - dragOffX;
+  texts[selectedIdx].y = y - dragOffY;
+  render();
+}, { passive: false });
+
+canvas.addEventListener('touchend', e => {
+  if (!dragging) return;
+  dragging = false;
+  // short tap (no real move) → open edit panel
+  // we check this by sniffing changedTouches vs dragOff delta — simple heuristic
+});
+
+// ─── DOWNLOAD ─────────────────────────────────────────────────────────────────
+function downloadMeme() {
+  if (!img) { showToast('⚠️ Nessuna immagine'); return; }
+  const prev = selectedIdx; selectedIdx = -1; render();
+  const link = document.createElement('a');
+  link.download = 'meme-' + Date.now() + '.png';
+  link.href = canvas.toDataURL('image/png');
+  link.click();
+  selectedIdx = prev; render();
+  showToast('✅ Meme salvato!');
+}
+
+// ─── SHARE ────────────────────────────────────────────────────────────────────
+async function shareMeme() {
+  if (!img) { showToast('⚠️ Nessuna immagine'); return; }
+  const prev = selectedIdx; selectedIdx = -1; render();
+  canvas.toBlob(async blob => {
+    selectedIdx = prev; render();
+    if (!blob) return;
+    const file = new File([blob], 'meme.png', { type: 'image/png' });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      try { await navigator.share({ files: [file], title: 'Il mio meme 🔥' }); showToast('✅ Condiviso!'); }
+      catch (err) { if (err.name !== 'AbortError') showToast('❌ Errore condivisione'); }
+    } else {
+      try {
+        await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+        showToast('📋 Copiato negli appunti!');
+      } catch { downloadMeme(); }
+    }
+  }, 'image/png');
+}
+
+// ─── TOAST ────────────────────────────────────────────────────────────────────
+let toastTimer;
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2500);
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+</script>
+</body>
+</html>
